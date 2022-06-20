@@ -25,3 +25,9 @@
 [submodule "arduino-new-ping"]
 	path = arduino-new-ping
 	url = https://bitbucket.org/teckel12/arduino-new-ping.git
+[submodule "Adafruit_BusIO"]
+	path = Adafruit_BusIO
+	url = https://github.com/adafruit/Adafruit_BusIO
+[submodule "LiquidCrystal"]
+	path = LiquidCrystal
+	url = https://github.com/arduino-libraries/LiquidCrystal
