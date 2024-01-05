@@ -22,3 +22,6 @@
 [submodule "TimerOne"]
 	path = TimerOne
 	url = https://github.com/PaulStoffregen/TimerOne
+[submodule "arduino-new-ping"]
+	path = arduino-new-ping
+	url = https://bitbucket.org/teckel12/arduino-new-ping.git
