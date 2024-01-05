@@ -15,7 +15,7 @@
 	url = https://github.com/terryjmyers/PWM
 [submodule "Servo"]
 	path = Servo
-	url = https://github.com/arduino-libraries/Servo
+	url = https://github.com/bleubidon/Servo_pr
 [submodule "Streaming"]
 	path = Streaming
 	url = https://github.com/janelia-arduino/Streaming
