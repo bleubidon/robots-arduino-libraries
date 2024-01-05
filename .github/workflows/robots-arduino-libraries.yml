@@ -1,0 +1,87 @@
+name: robots-arduino-libraries build CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: setup
+        run: |
+          brew update
+          brew install arduino-cli
+          arduino-cli core install arduino:avr
+      
+      - name: build user libs
+        run: |
+          # Prepare g++ include directives for all user and native libraries
+            USER_LIBS_ROOT=$(pwd)
+            ARDUI_LIBS_ROOT="/home/runner/.arduino15/packages/arduino/hardware/avr/1.8.5/libraries"
+
+            USER_LIBS=$(find $USER_LIBS_ROOT -mindepth 1 -maxdepth 1 -type d -not -path "$USER_LIBS_ROOT/.*" -printf "%P\n")
+            for lib in $USER_LIBS; do USER_LIBS_INCLUDES="$USER_LIBS_INCLUDES \"-I$USER_LIBS_ROOT/$lib\""; done
+            for lib in $USER_LIBS; do USER_LIBS_INCLUDES="$USER_LIBS_INCLUDES \"-I$USER_LIBS_ROOT/$lib/src\""; done
+
+            ARDUI_LIBS=$(find $ARDUI_LIBS_ROOT -maxdepth 1 -type d -printf "%P\n")
+            for lib in $ARDUI_LIBS; do ARDUI_LIBS_INCLUDES="$ARDUI_LIBS_INCLUDES \"-I$ARDUI_LIBS_ROOT/$lib/src\""; done
+
+          # Attempt to compile each user library
+            for lib in $USER_LIBS
+            do
+              echo Compiling $lib;
+              
+              # Special treatments required for some specific libraries
+                if [[ $lib = "RF24" ]]
+                then
+                  SOURCE_FILES=RF24.cpp;
+                else
+                  SOURCE_FILES=$(find $USER_LIBS_ROOT/$lib -type f \( -name \*.cpp -o -name \*.c \) -printf '%P\n');
+                fi
+              
+              # Attempt to compile all library source files
+                for source_file in $SOURCE_FILES
+                do
+                  SOURCE_COMPILE_CMD="/home/runner/.arduino15/packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/bin/avr-g++ -c -g -Os -w -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mmcu=atmega2560 -DF_CPU=16000000L -DARDUINO=10607 -DARDUINO_AVR_MEGA2560 -DARDUINO_ARCH_AVR -I/home/runner/.arduino15/packages/arduino/hardware/avr/1.8.5/cores/arduino -I/home/runner/.arduino15/packages/arduino/hardware/avr/1.8.5/variants/mega $ARDUI_LIBS_INCLUDES $USER_LIBS_INCLUDES \"$USER_LIBS_ROOT/$lib/$source_file\"";
+                  eval $SOURCE_COMPILE_CMD;
+                done
+            done
+
+      - name: build ino sketches
+        run: |
+          # Attempt to compile all .ino files which name matches that of its parent folder (except those that are whitelisted)
+            ALL_INO=$(find -name "*.ino" -printf "%P\n")
+
+            for ino in $ALL_INO
+            do
+              # Whitelist: .ino files to skip (i.e. compilation is allowed to fail)
+                if [[
+                  $ino = "RF24/examples/old_backups/recipes/pingpair_maple/pingpair_maple.ino" ||
+                  $ino = "MPU6050_DMP/examples/MPU6050_DMP6_ESPWiFi/MPU6050_DMP6_ESPWiFi.ino" ||
+                  $ino = "MPU6050_DMP/examples/MPU6050_DMP6_Ethernet/MPU6050_DMP6_Ethernet.ino" ||
+                  $ino = "Robot/examples/controle_moteurs/shield_adafruit_v2/shield_adafruit_v2.ino" ||
+                  $ino = "Robot/examples/controle_moteurs/shield_L298N/shield_L298N.ino" ||
+                  $ino = "Adafruit_Sensor/examples/sensortest/sensortest.ino"
+                  ]]
+                then
+                  continue;
+                fi
+
+              # Attempt to compile if .ino file name matches that of its parent folder
+                if [[ $(basename $ino .ino) = $(basename $(dirname $ino)) ]]
+                then
+                  echo Compiling $ino;
+                  arduino-cli compile -b arduino:avr:mega:cpu=atmega2560 --libraries "." $ino;
+                  echo;
+                fi
+            done
