@@ -1,0 +1,24 @@
+[submodule "Adafruit_BNO055"]
+	path = Adafruit_BNO055
+	url = https://github.com/adafruit/Adafruit_BNO055.git
+[submodule "Adafruit_Sensor"]
+	path = Adafruit_Sensor
+	url = https://github.com/adafruit/Adafruit_Sensor.git
+[submodule "RF24"]
+	path = RF24
+	url = https://github.com/nRF24/RF24
+[submodule "AccelStepper"]
+	path = AccelStepper
+	url = https://github.com/adafruit/AccelStepper
+[submodule "PWM"]
+	path = PWM
+	url = https://github.com/terryjmyers/PWM
+[submodule "Servo"]
+	path = Servo
+	url = https://github.com/arduino-libraries/Servo
+[submodule "Streaming"]
+	path = Streaming
+	url = https://github.com/janelia-arduino/Streaming
+[submodule "TimerOne"]
+	path = TimerOne
+	url = https://github.com/PaulStoffregen/TimerOne
